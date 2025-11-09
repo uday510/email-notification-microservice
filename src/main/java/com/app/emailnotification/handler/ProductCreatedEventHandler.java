@@ -73,6 +73,7 @@ public class ProductCreatedEventHandler {
         ProcessedEventEntity existingRecord = processedEventRepository.findByMessageId(messageId);
         if (existingRecord != null) {
             LOGGER.info("Found a duplicate message id: {}", existingRecord.getMessageId());
+            return;
         }
 
         final String URL = "http://localhost:8082/response/200";
