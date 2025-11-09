@@ -1,5 +1,7 @@
 package com.app.emailnotification.config;
 
+import com.app.emailnotification.error.NonRetryableException;
+import com.app.emailnotification.error.RetryableException;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.StringDeserializer;
@@ -16,6 +18,7 @@ import org.springframework.kafka.support.serializer.ErrorHandlingDeserializer;
 import org.springframework.kafka.support.serializer.JsonDeserializer;
 import org.springframework.kafka.support.serializer.JsonSerializer;
 import org.springframework.util.backoff.FixedBackOff;
+import org.springframework.web.client.HttpServerErrorException;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -41,9 +44,10 @@ public class KafkaConsumerConfiguration {
         consumerConfigMap.put(ErrorHandlingDeserializer.VALUE_DESERIALIZER_CLASS, JsonDeserializer.class);
 
         consumerConfigMap.put(JsonDeserializer.TRUSTED_PACKAGES,
-                environment.getProperty("spring.kafka.consumer.properties.spring.json.trusted.packages", "*"));
+                environment.getProperty("spring.kafka.consumer.properties.spring.json.trusted.packages", "com.app.core"));
         consumerConfigMap.put(JsonDeserializer.USE_TYPE_INFO_HEADERS, false);
-        consumerConfigMap.put(JsonDeserializer.VALUE_DEFAULT_TYPE, "java.lang.Object");
+
+        consumerConfigMap.put(JsonDeserializer.VALUE_DEFAULT_TYPE, "com.app.core.ProductCreateEvent");
 
         return new DefaultKafkaConsumerFactory<>(consumerConfigMap);
     }
@@ -54,11 +58,13 @@ public class KafkaConsumerConfiguration {
             KafkaTemplate<String, Object> kafkaTemplate) {
 
         DeadLetterPublishingRecoverer recoverer = new DeadLetterPublishingRecoverer(kafkaTemplate);
-        FixedBackOff backOff = new FixedBackOff(0L, 0L);
+        FixedBackOff backOff = new FixedBackOff(5000L, 3L);
 
         DefaultErrorHandler errorHandler = new DefaultErrorHandler(recoverer, backOff);
 
-        errorHandler.addNotRetryableExceptions(org.springframework.kafka.support.serializer.DeserializationException.class);
+        errorHandler.addNotRetryableExceptions(NonRetryableException.class, HttpServerErrorException.class,
+                org.springframework.kafka.support.serializer.DeserializationException.class);
+        errorHandler.addRetryableExceptions(RetryableException.class);
 
         errorHandler.setRetryListeners((record, ex, attempt) ->
                 System.err.println("Error in record " + record + ": " + ex.getMessage()));
