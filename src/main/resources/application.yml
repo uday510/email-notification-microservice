@@ -3,12 +3,23 @@ spring:
     name: EmailNotificationMicroservice
 
   kafka:
+    bootstrap-servers: localhost:9092  # optional global default
+
     consumer:
       bootstrap-servers: localhost:9092
-#      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-#      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
       group-id: product-created-events
-      properties.spring.json.trusted.packages: com.app.core
+      properties:
+        spring.json.trusted.packages: com.app.core
+      # Optional but useful for local testing:
+      # auto-offset-reset: earliest
+
+    producer:
+      bootstrap-servers: localhost:9092
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      acks: all
+      properties:
+        enable.idempotence: true
 
 server:
   port: 8081
