@@ -7,7 +7,7 @@ spring:
 
     consumer:
       bootstrap-servers: localhost:9092
-      group-id: product-created-events
+#      group-id: product-created-events
       properties:
         spring.json.trusted.packages: com.app.core
       # Optional but useful for local testing:
@@ -22,4 +22,7 @@ spring:
         enable.idempotence: true
 
 server:
-  port: 8081
+  port: 0
+
+consumer:
+  group-id: product-created-events

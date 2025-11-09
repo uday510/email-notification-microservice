@@ -33,10 +33,8 @@ public class KafkaConsumerConfiguration {
     public ConsumerFactory<String, Object> consumerFactory() {
         Map<String, Object> consumerConfigMap = new HashMap<>();
 
-        consumerConfigMap.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG,
-                environment.getProperty("spring.kafka.consumer.bootstrap-servers"));
-        consumerConfigMap.put(ConsumerConfig.GROUP_ID_CONFIG,
-                environment.getProperty("spring.kafka.consumer.group-id"));
+        consumerConfigMap.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, environment.getProperty("spring.kafka.consumer.bootstrap-servers"));
+        consumerConfigMap.put(ConsumerConfig.GROUP_ID_CONFIG, environment.getProperty("consumer.group-id"));
 
         consumerConfigMap.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, ErrorHandlingDeserializer.class);
         consumerConfigMap.put(ErrorHandlingDeserializer.KEY_DESERIALIZER_CLASS, StringDeserializer.class);
